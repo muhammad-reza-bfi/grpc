@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	bytestreamWrite "github.com/elangreza14/grpc/internal/bytestream/write"
+	bytestreamServer "github.com/elangreza14/grpc/internal/bytestream/server"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
@@ -16,12 +16,12 @@ func main() {
 	}
 	defer conn.Close()
 
-	bytestreamServer, err := bytestreamWrite.NewServer()
+	bs, err := bytestreamServer.NewServer()
 	if err != nil {
 		panic(err)
 	}
 
-	err = bytestreamServer.Run(context.Background())
+	err = bs.Run(context.Background())
 	if err != nil {
 		panic(err)
 	}
