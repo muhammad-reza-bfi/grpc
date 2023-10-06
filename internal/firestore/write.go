@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 
-	errorc "github.com/elangreza14/grpc/internal/error"
 	terminal "github.com/elangreza14/grpc/internal/terminal"
 	firestore "google.golang.org/genproto/googleapis/firestore/v1beta1"
 	"google.golang.org/grpc/codes"
@@ -82,7 +81,10 @@ func (w *Write) send() error {
 	err := w.sendMessage(&firestore.WriteRequest{
 		Database: "projects/elangreza-golang-base/databases/(default)",
 	})
-	errorc.CheckErr(err)
+
+	if err != nil {
+		return err
+	}
 
 	for {
 		select {
@@ -119,7 +121,9 @@ func (w *Write) send() error {
 				}
 
 				err := w.sendMessage(message)
-				errorc.CheckErr(err)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}

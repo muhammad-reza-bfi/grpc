@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 
+	errorc "github.com/elangreza14/grpc/internal/error"
 	firestoreclient "github.com/elangreza14/grpc/internal/firestore"
 	firestore "google.golang.org/genproto/googleapis/firestore/v1beta1"
 	"google.golang.org/grpc"
@@ -20,16 +21,13 @@ func main() {
 
 	cred := grpc.WithTransportCredentials(credentials.NewClientTLSFromCert(nil, ""))
 	conn, err := grpc.Dial("firestore.googleapis.com:443", cred)
-	if err != nil {
-		panic(err)
-	}
+	errorc.CheckErr(err)
 	defer conn.Close()
 
 	firestoreClient := firestore.NewFirestoreClient(conn)
 
 	batchGetDocumentServerStream, err := firestoreclient.NewBatchGetDocument(ctx, firestoreClient)
-	if err != nil {
-		panic(err)
-	}
+	errorc.CheckErr(err)
+
 	batchGetDocumentServerStream.Run()
 }

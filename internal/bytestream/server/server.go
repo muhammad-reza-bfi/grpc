@@ -6,7 +6,6 @@ import (
 	"net"
 	"time"
 
-	errorc "github.com/elangreza14/grpc/internal/error"
 	file "github.com/elangreza14/grpc/internal/file"
 	"google.golang.org/genproto/googleapis/bytestream"
 
@@ -28,7 +27,9 @@ func (w *Server) Run(ctx context.Context) error {
 	bytestream.RegisterByteStreamServer(srv, w)
 
 	listener, err := net.Listen("tcp", "localhost:50051")
-	errorc.CheckErr(err)
+	if err != nil {
+		return err
+	}
 
 	go func() {
 		_ = srv.Serve(listener)
@@ -61,7 +62,9 @@ func (w *Server) Write(writeServer bytestream.ByteStream_WriteServer) error {
 	for {
 		res, err := writeServer.Recv()
 
-		errorc.CheckErr(err)
+		if err != nil {
+			return err
+		}
 
 		fmt.Printf("got value: %v for %v \n", res.Data, res.ResourceName)
 		bs = append(bs, res.Data...)
@@ -73,7 +76,9 @@ func (w *Server) Write(writeServer bytestream.ByteStream_WriteServer) error {
 				Data: bs,
 			}, "output")
 
-			errorc.CheckErr(err)
+			if err != nil {
+				return err
+			}
 
 			fmt.Println("finished writing:", res.GetResourceName())
 			break

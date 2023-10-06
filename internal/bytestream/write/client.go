@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	errorc "github.com/elangreza14/grpc/internal/error"
 	"google.golang.org/genproto/googleapis/bytestream"
 )
 
@@ -14,7 +13,9 @@ type Client struct {
 
 func NewClient(ctx context.Context, byteStreamClient bytestream.ByteStreamClient) (*Client, error) {
 	clnt, err := byteStreamClient.Write(ctx)
-	errorc.CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
 
 	return &Client{
 		client: clnt,
@@ -35,11 +36,15 @@ func (w *Client) Run(fileName string, payloads ...[]byte) error {
 		}
 
 		err := w.client.Send(req)
-		errorc.CheckErr(err)
+		if err != nil {
+			return err
+		}
 	}
 
 	res, err := w.client.CloseAndRecv()
-	errorc.CheckErr(err)
+	if err != nil {
+		return err
+	}
 
 	fmt.Println(res)
 

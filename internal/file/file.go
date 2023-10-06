@@ -3,8 +3,6 @@ package file
 import (
 	"fmt"
 	"os"
-
-	errorc "github.com/elangreza14/grpc/internal/error"
 )
 
 type File struct {
@@ -41,11 +39,15 @@ func Read(location string) (*File, error) {
 func Write(file *File, location string) error {
 
 	f, err := os.Create(fmt.Sprintf("%s/%s", location, file.Name))
-	errorc.CheckErr(err)
+	if err != nil {
+		return err
+	}
 	defer f.Close()
 
 	_, err = f.Write(file.Data)
-	errorc.CheckErr(err)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
