@@ -30,6 +30,8 @@ func (w *Client) Run(fileName string, payloads ...[]byte) error {
 			Data:         payloads[i],
 		}
 
+		fmt.Println("sending:", payloads[i])
+
 		// if last set finish write = true
 		if i == len(payloads)-1 {
 			req.FinishWrite = true

@@ -35,6 +35,8 @@ func (w *Server) Run(ctx context.Context) error {
 		_ = srv.Serve(listener)
 	}()
 
+	fmt.Println("running grpc service at 50051")
+
 	// wait until ctx is done
 	select {
 	case <-ctx.Done():
@@ -47,12 +49,23 @@ func (w *Server) Run(ctx context.Context) error {
 }
 
 func (w *Server) Read(req *bytestream.ReadRequest, readServer bytestream.ByteStream_ReadServer) error {
+	fmt.Println("querying", req.GetResourceName())
 
-	readServer.Send(&bytestream.ReadResponse{
-		Data: []byte{},
-	})
+	res, err := file.Read(req.GetResourceName())
+	if err != nil {
+		return status.Errorf(codes.NotFound, "not found")
+	}
 
-	return status.Errorf(codes.Unimplemented, "method Read not implemented")
+	for _, data := range res.CreateChunk() {
+		fmt.Println("sending:", data)
+		readServer.Send(&bytestream.ReadResponse{
+			Data: data,
+		})
+	}
+
+	fmt.Println("data's sent")
+
+	return nil
 }
 
 func (w *Server) Write(writeServer bytestream.ByteStream_WriteServer) error {
@@ -66,16 +79,19 @@ func (w *Server) Write(writeServer bytestream.ByteStream_WriteServer) error {
 			return err
 		}
 
-		fmt.Printf("got value: %v for %v \n", res.Data, res.ResourceName)
+		fmt.Println("data from client:", res.Data)
 		bs = append(bs, res.Data...)
 		committedSize = committedSize + len(res.Data)
 
 		if res.GetFinishWrite() {
-			err := file.Write(&file.File{
+
+			// write into new file
+			fw := &file.File{
 				Name: fmt.Sprintf("%d-%s", time.Now().Nanosecond(), res.ResourceName),
 				Data: bs,
-			}, "output")
-
+			}
+			// place under Output directory
+			err := fw.Write("output/write")
 			if err != nil {
 				return err
 			}

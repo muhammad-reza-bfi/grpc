@@ -27,25 +27,6 @@ func main() {
 	writeClient, err := bytestreamWrite.NewClient(context.Background(), bsc)
 	errorc.CheckErr(err)
 
-	err = writeClient.Run(res.Name, createChunk(res)...)
+	err = writeClient.Run(res.Name, res.CreateChunk()...)
 	errorc.CheckErr(err)
-}
-
-func createChunk(res *file.File) [][]byte {
-	var divided [][]byte
-	var numCPU = 3
-
-	chunkSize := (len(res.Data) + numCPU - 1) / numCPU
-
-	for i := 0; i < len(res.Data); i += chunkSize {
-		end := i + chunkSize
-
-		if end > len(res.Data) {
-			end = len(res.Data)
-		}
-
-		divided = append(divided, res.Data[i:end])
-	}
-
-	return divided
 }

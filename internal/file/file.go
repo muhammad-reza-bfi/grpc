@@ -36,18 +36,37 @@ func Read(location string) (*File, error) {
 	}, err
 }
 
-func Write(file *File, location string) error {
+func (res *File) Write(location string) error {
 
-	f, err := os.Create(fmt.Sprintf("%s/%s", location, file.Name))
+	f, err := os.Create(fmt.Sprintf("%s/%s", location, res.Name))
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
-	_, err = f.Write(file.Data)
+	_, err = f.Write(res.Data)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (res *File) CreateChunk() [][]byte {
+	var divided [][]byte
+	var numCPU = 3
+
+	chunkSize := (len(res.Data) + numCPU - 1) / numCPU
+
+	for i := 0; i < len(res.Data); i += chunkSize {
+		end := i + chunkSize
+
+		if end > len(res.Data) {
+			end = len(res.Data)
+		}
+
+		divided = append(divided, res.Data[i:end])
+	}
+
+	return divided
 }

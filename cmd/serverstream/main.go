@@ -3,31 +3,22 @@ package main
 import (
 	"context"
 
+	bytestreamRead "github.com/elangreza14/grpc/internal/bytestream/read"
 	errorc "github.com/elangreza14/grpc/internal/error"
-	firestoreclient "github.com/elangreza14/grpc/internal/firestore"
-	firestore "google.golang.org/genproto/googleapis/firestore/v1beta1"
+	"google.golang.org/genproto/googleapis/bytestream"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
-	ctx := context.Background()
-
-	headers := metadata.Pairs(
-		"Authorization", "Bearer "+"ya29.a0AfB_byDRJ8BTNFSPzipuQbiiH6Kgdh6jjvkpSl08fVUeB5m63LnjZdHAHHLANNM_pkxBbvm5jhFqzHteo-YLO4xxAnP1UBVuGaHchCQ8kazO6w0lcrjkENlNePWlLmvnbxfDfiKxp88_xn6UpcYwJ2qwdIGQrsD-eblcaCgYKARkSARESFQGOcNnCw8DgFBDCfDAR9bqUThSuVA0171",
-	)
-	ctx = metadata.NewOutgoingContext(ctx, headers)
-
-	cred := grpc.WithTransportCredentials(credentials.NewClientTLSFromCert(nil, ""))
-	conn, err := grpc.Dial("firestore.googleapis.com:443", cred)
+	conn, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	errorc.CheckErr(err)
 	defer conn.Close()
 
-	firestoreClient := firestore.NewFirestoreClient(conn)
-
-	batchGetDocumentServerStream, err := firestoreclient.NewBatchGetDocument(ctx, firestoreClient)
+	bsc := bytestream.NewByteStreamClient(conn)
+	readClient, err := bytestreamRead.NewClient(bsc)
 	errorc.CheckErr(err)
 
-	batchGetDocumentServerStream.Run()
+	err = readClient.Run(context.Background(), "test.txt")
+	errorc.CheckErr(err)
 }
