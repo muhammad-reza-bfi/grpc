@@ -1,4 +1,4 @@
-package firestoreclient
+package write
 
 import (
 	"context"
@@ -11,6 +11,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
+
+var databaseUrl = "projects/elangreza-golang-base/databases/(default)"
 
 type Write struct {
 	terminal    terminal.Terminal
@@ -43,24 +45,27 @@ func (w *Write) receive() error {
 	for {
 		res, err := w.writeClient.Recv()
 
-		if sts, ok := status.FromError(err); ok && sts.Code() == codes.Canceled {
-			fmt.Printf("got err 1 %v \n", sts.Code())
-			return fmt.Errorf("got error %v", sts.Code())
-		} else if err == io.EOF {
-			fmt.Printf("got err 2 %v \n", err.Error())
-			return errors.New("stream closed")
-		} else if err != nil {
-			fmt.Printf("got err 3 %v \n", err.Error())
+		// check if stream is end
+		if err == io.EOF {
+			fmt.Printf("streaming is done")
+			break
+		}
+
+		if err != nil {
 			return err
 		}
 
-		fmt.Printf("got commit time: %v \n", res.CommitTime)
+		if res.WriteResults != nil {
+			fmt.Printf("success: %v\n", res.WriteResults)
+		}
 
 		if w.streamID == "" || w.streamToken == nil {
 			w.streamID = res.GetStreamId()
 			w.streamToken = res.GetStreamToken()
 		}
 	}
+
+	return nil
 }
 
 func (w *Write) sendMessage(payload *firestore.WriteRequest) error {
@@ -69,7 +74,6 @@ func (w *Write) sendMessage(payload *firestore.WriteRequest) error {
 	// check the error code
 	if s, ok := status.FromError(err); ok {
 		if s.Code() != codes.OK {
-			fmt.Printf("got error: %v", s.Code())
 			return errors.New("error stream when sending the message")
 		}
 	}
@@ -79,12 +83,14 @@ func (w *Write) sendMessage(payload *firestore.WriteRequest) error {
 
 func (w *Write) send() error {
 	err := w.sendMessage(&firestore.WriteRequest{
-		Database: "projects/elangreza-golang-base/databases/(default)",
+		Database: databaseUrl,
 	})
 
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("connected into firebase")
 
 	for {
 		select {
@@ -97,6 +103,7 @@ func (w *Write) send() error {
 				continue
 			}
 
+			// read input from terminal
 			valText, ok := w.terminal.ValText()
 			if ok {
 				val := make(map[string]*firestore.Value)
@@ -107,13 +114,13 @@ func (w *Write) send() error {
 				}
 
 				message := &firestore.WriteRequest{
-					Database: "projects/elangreza-golang-base/databases/(default)",
+					Database: databaseUrl,
 					StreamId: w.streamID,
 					Writes: []*firestore.Write{
 						{
 							Operation: &firestore.Write_Update{
 								Update: &firestore.Document{
-									Name:   fmt.Sprintf("projects/elangreza-golang-base/databases/(default)/documents/a/%s", valText),
+									Name:   fmt.Sprintf("%s/documents/a/%s", databaseUrl, valText),
 									Fields: val,
 								}},
 						}},

@@ -1,8 +1,9 @@
-package write
+package mockserver
 
 import (
 	"context"
 	"fmt"
+	"io"
 	"net"
 	"time"
 
@@ -14,15 +15,15 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type Server struct {
+type MockServer struct {
 	bytestream.UnimplementedByteStreamServer
 }
 
-func NewServer() (*Server, error) {
-	return &Server{}, nil
+func NewMockServer() (*MockServer, error) {
+	return &MockServer{}, nil
 }
 
-func (w *Server) Run(ctx context.Context) error {
+func (w *MockServer) Run(ctx context.Context) error {
 	srv := grpc.NewServer()
 	bytestream.RegisterByteStreamServer(srv, w)
 
@@ -35,7 +36,7 @@ func (w *Server) Run(ctx context.Context) error {
 		_ = srv.Serve(listener)
 	}()
 
-	fmt.Println("running grpc service at 50051")
+	fmt.Println("running grpc bytestream mock service at 50051")
 
 	// wait until ctx is done
 	select {
@@ -48,7 +49,7 @@ func (w *Server) Run(ctx context.Context) error {
 	return nil
 }
 
-func (w *Server) Read(req *bytestream.ReadRequest, readServer bytestream.ByteStream_ReadServer) error {
+func (w *MockServer) Read(req *bytestream.ReadRequest, readMockServer bytestream.ByteStream_ReadServer) error {
 	fmt.Println("querying", req.GetResourceName())
 
 	res, err := file.Read(req.GetResourceName())
@@ -58,7 +59,7 @@ func (w *Server) Read(req *bytestream.ReadRequest, readServer bytestream.ByteStr
 
 	for _, data := range res.CreateChunk() {
 		fmt.Println("sending:", data)
-		readServer.Send(&bytestream.ReadResponse{
+		readMockServer.Send(&bytestream.ReadResponse{
 			Data: data,
 		})
 	}
@@ -68,12 +69,18 @@ func (w *Server) Read(req *bytestream.ReadRequest, readServer bytestream.ByteStr
 	return nil
 }
 
-func (w *Server) Write(writeServer bytestream.ByteStream_WriteServer) error {
+func (w *MockServer) Write(writeMockServer bytestream.ByteStream_WriteServer) error {
 
 	committedSize := 0
 	bs := make([]byte, 1000)
 	for {
-		res, err := writeServer.Recv()
+		res, err := writeMockServer.Recv()
+
+		// check if stream is end
+		if err == io.EOF {
+			fmt.Printf("streaming is done")
+			break
+		}
 
 		if err != nil {
 			return err
@@ -101,7 +108,7 @@ func (w *Server) Write(writeServer bytestream.ByteStream_WriteServer) error {
 		}
 	}
 
-	return writeServer.SendAndClose(&bytestream.WriteResponse{
+	return writeMockServer.SendAndClose(&bytestream.WriteResponse{
 		CommittedSize: int64(committedSize),
 	})
 }
