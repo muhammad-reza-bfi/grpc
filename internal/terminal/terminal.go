@@ -2,9 +2,7 @@ package terminal
 
 import (
 	"bufio"
-	"errors"
 	"os"
-	"strings"
 )
 
 // Terminal is ...
@@ -29,21 +27,4 @@ func (t *Terminal) ValText() (string, bool) {
 	}
 
 	return "", false
-}
-
-// ValBoolean ...
-func (t *Terminal) ValBoolean() (bool, error) {
-	res, ok := t.ValText()
-	if ok {
-		lower := strings.ToLower(res)
-		if lower == "y" {
-			return true, nil
-		}
-
-		if lower == "n" {
-			return false, nil
-		}
-	}
-
-	return false, errors.New("terminal just accept Y / N")
 }

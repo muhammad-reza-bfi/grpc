@@ -24,9 +24,9 @@ func NewMockServer() (*MockServer, error) {
 	}, nil
 }
 
-func (w *MockServer) Run(ctx context.Context) error {
+func (ms *MockServer) Run(ctx context.Context) error {
 	srv := grpc.NewServer()
-	firestore.RegisterFirestoreServer(srv, w)
+	firestore.RegisterFirestoreServer(srv, ms)
 
 	listener, err := net.Listen("tcp", "localhost:50052")
 	if err != nil {
@@ -76,7 +76,8 @@ func (ms *MockServer) send(ws firestore.Firestore_WriteServer) error {
 				WriteResults: []*firestore.WriteResult{
 					{
 						UpdateTime: timestamppb.Now(),
-					}},
+					},
+				},
 				CommitTime: timestamppb.Now(),
 			})
 			if err != nil {
