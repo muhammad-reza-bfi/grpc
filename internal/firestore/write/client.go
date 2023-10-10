@@ -2,14 +2,11 @@ package write
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 
 	terminal "github.com/elangreza14/grpc/internal/terminal"
 	firestore "google.golang.org/genproto/googleapis/firestore/v1beta1"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 var databaseUrl = "projects/elangreza-golang-base/databases/(default)"
@@ -35,6 +32,7 @@ func NewWrite(ctx context.Context, firestoreClient firestore.FirestoreClient) (*
 }
 
 func (w *Write) Run() error {
+	fmt.Println("client: create ws")
 	go w.receive()
 
 	return w.send()
@@ -48,9 +46,7 @@ func (w *Write) receive() error {
 		if err == io.EOF {
 			fmt.Printf("streaming is done")
 			break
-		}
-
-		if err != nil {
+		} else if err != nil {
 			return err
 		}
 
@@ -68,9 +64,8 @@ func (w *Write) receive() error {
 }
 
 func (w *Write) send() error {
-	err := w.sendMessage(&firestore.WriteRequest{
-		Database: databaseUrl,
-	})
+	// initiate first message with empty payload to get streamID
+	err := w.writeClient.Send(w.buildMessage(nil))
 	if err != nil {
 		return err
 	}
@@ -91,34 +86,11 @@ func (w *Write) send() error {
 			// read input from terminal
 			valText, ok := w.terminal.ValText()
 			if ok {
-
-				// create object to input into firebase
-				val := make(map[string]*firestore.Value)
-				val[valText] = &firestore.Value{
-					ValueType: &firestore.Value_StringValue{
-						StringValue: valText,
-					},
-				}
-
 				// build message request with payload
-				message := &firestore.WriteRequest{
-					Database: databaseUrl,
-					StreamId: w.streamID,
-					Writes: []*firestore.Write{
-						{
-							Operation: &firestore.Write_Update{
-								Update: &firestore.Document{
-									Name:   fmt.Sprintf("%s/documents/a/%s", databaseUrl, valText),
-									Fields: val,
-								},
-							},
-						},
-					},
-					StreamToken: w.streamToken,
-				}
+				message := w.buildMessage(&valText)
 
-				// send message
-				err := w.sendMessage(message)
+				// send message to server
+				err := w.writeClient.Send(message)
 				if err != nil {
 					return err
 				}
@@ -127,15 +99,28 @@ func (w *Write) send() error {
 	}
 }
 
-func (w *Write) sendMessage(payload *firestore.WriteRequest) error {
-	err := w.writeClient.Send(payload)
+func (w *Write) buildMessage(valText *string) *firestore.WriteRequest {
+	res := &firestore.WriteRequest{
+		Database: databaseUrl,
+	}
 
-	// check the error code
-	if s, ok := status.FromError(err); ok {
-		if s.Code() != codes.OK {
-			return errors.New("error stream when sending the message")
+	if w.streamID != "" {
+		res.StreamId = w.streamID
+	}
+	if w.streamToken != nil {
+		res.StreamToken = w.streamToken
+	}
+	if valText != nil {
+		res.Writes = []*firestore.Write{
+			{
+				Operation: &firestore.Write_Update{
+					Update: &firestore.Document{
+						Name: fmt.Sprintf("%s/documents/a/%s", databaseUrl, *valText),
+					},
+				},
+			},
 		}
 	}
 
-	return nil
+	return res
 }

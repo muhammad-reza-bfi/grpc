@@ -44,9 +44,7 @@ func (w *Client) Run(ctx context.Context, fileName string) error {
 		if err == io.EOF {
 			fmt.Printf("streaming is done")
 			break
-		}
-
-		if err != nil {
+		} else if err != nil {
 			return err
 		}
 
@@ -56,6 +54,11 @@ func (w *Client) Run(ctx context.Context, fileName string) error {
 		bs = append(bs, res.GetData()...)
 	}
 
+	// build file to store response
+	return w.writeIntoFile(bs, fileName)
+}
+
+func (w *Client) writeIntoFile(bs []byte, fileName string) error {
 	// build file to store response
 	res := &file.File{
 		Name: fmt.Sprintf("%d-%s", time.Now().Nanosecond(), fileName),

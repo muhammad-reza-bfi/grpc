@@ -49,23 +49,30 @@ func (w *MockServer) Run(ctx context.Context) error {
 	return nil
 }
 
-func (w *MockServer) Read(req *bytestream.ReadRequest, readMockServer bytestream.ByteStream_ReadServer) error {
+func (w *MockServer) Read(
+	req *bytestream.ReadRequest,
+	readMockServer bytestream.ByteStream_ReadServer,
+) error {
 	fmt.Println("querying", req.GetResourceName())
 
+	// read file and search by resource name
 	res, err := file.Read(req.GetResourceName())
 	if err != nil {
 		return status.Errorf(codes.NotFound, "not found")
 	}
 
+	// create chunk of bytes from entire file
 	for _, data := range res.CreateChunk() {
 		fmt.Println("sending:", data)
-		readMockServer.Send(&bytestream.ReadResponse{
+		err := readMockServer.Send(&bytestream.ReadResponse{
 			Data: data,
 		})
+		if err != nil {
+			return status.Errorf(codes.DataLoss, "data loss")
+		}
 	}
 
 	fmt.Println("data's sent")
-
 	return nil
 }
 

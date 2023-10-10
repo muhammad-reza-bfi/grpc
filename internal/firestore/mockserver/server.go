@@ -51,7 +51,7 @@ func (ms *MockServer) Run(ctx context.Context) error {
 }
 
 func (ms *MockServer) Write(ws firestore.Firestore_WriteServer) error {
-	fmt.Println("got ws")
+	fmt.Println("server: got ws")
 	go ms.send(ws)
 
 	return ms.receive(ws)
@@ -97,9 +97,7 @@ func (ms *MockServer) receive(ws firestore.Firestore_WriteServer) error {
 		if err == io.EOF {
 			fmt.Printf("streaming is done")
 			break
-		}
-
-		if err != nil {
+		} else if err != nil {
 			return err
 		}
 
