@@ -71,44 +71,58 @@ func (w *MockServer) Read(req *bytestream.ReadRequest, readMockServer bytestream
 
 func (w *MockServer) Write(writeMockServer bytestream.ByteStream_WriteServer) error {
 
-	committedSize := 0
-	bs := make([]byte, 1000)
+	// prepare var
+	fileName := ""
+	bytes := make([]byte, 1000) // for saving the chunks
 	for {
+
+		// receive payload from client
 		res, err := writeMockServer.Recv()
 
 		// check if stream is end
 		if err == io.EOF {
 			fmt.Printf("streaming is done")
 			break
-		}
-
-		if err != nil {
+		} else if err != nil {
 			return err
 		}
 
 		fmt.Println("data from client:", res.Data)
-		bs = append(bs, res.Data...)
-		committedSize = committedSize + len(res.Data)
 
+		// appending chunks into complete data
+		bytes = append(bytes, res.Data...)
+
+		// check if client want to end the stream, and set the filename
 		if res.GetFinishWrite() {
-
-			// write into new file
-			fw := &file.File{
-				Name: fmt.Sprintf("%d-%s", time.Now().Nanosecond(), res.ResourceName),
-				Data: bs,
-			}
-			// place under Output directory
-			err := fw.Write("output/write")
-			if err != nil {
-				return err
-			}
-
-			fmt.Println("finished writing:", res.GetResourceName())
+			fileName = res.ResourceName
 			break
 		}
 	}
 
+	// write bytes/datas into file
+	err := w.writeIntoFile(bytes, fileName)
+	if err != nil {
+		return err
+	}
+	fmt.Println("finished writing:", fileName)
+
+	// send last message and send the committedSize, and the close the stream
 	return writeMockServer.SendAndClose(&bytestream.WriteResponse{
-		CommittedSize: int64(committedSize),
+		CommittedSize: int64(len(bytes)),
 	})
+}
+
+func (w *MockServer) writeIntoFile(data []byte, res string) error {
+	// write into new file
+	fw := &file.File{
+		Name: fmt.Sprintf("%d-%s", time.Now().Nanosecond(), res),
+		Data: data,
+	}
+	// place under Output directory
+	err := fw.Write("output/write")
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
