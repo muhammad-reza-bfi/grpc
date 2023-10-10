@@ -98,7 +98,7 @@ func (w *MockServer) Write(writeMockServer bytestream.ByteStream_WriteServer) er
 		}
 	}
 
-	// write bytes/datas into file
+	// write bytes into file
 	err := w.writeIntoFile(bytes, fileName)
 	if err != nil {
 		return err
