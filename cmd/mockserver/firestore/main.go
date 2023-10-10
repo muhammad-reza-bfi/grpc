@@ -8,11 +8,9 @@ import (
 )
 
 func main() {
-
 	bs, err := firestoreServer.NewMockServer()
 	errorc.CheckErr(err)
 
 	err = bs.Run(context.Background())
 	errorc.CheckErr(err)
-
 }

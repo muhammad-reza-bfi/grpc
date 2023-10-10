@@ -70,7 +70,6 @@ func (w *MockServer) Read(req *bytestream.ReadRequest, readMockServer bytestream
 }
 
 func (w *MockServer) Write(writeMockServer bytestream.ByteStream_WriteServer) error {
-
 	// prepare var
 	fileName := ""
 	bytes := make([]byte, 1000) // for saving the chunks

@@ -23,7 +23,6 @@ func NewClient(ctx context.Context, byteStreamClient bytestream.ByteStreamClient
 }
 
 func (w *Client) Run(fileName string, chunks ...[]byte) error {
-
 	// send all the chunks one by one
 	for i := 0; i < len(chunks); i++ {
 		// setup the data with the chunk

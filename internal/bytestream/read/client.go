@@ -24,7 +24,6 @@ func NewClient(byteStreamClient bytestream.ByteStreamClient) (*Client, error) {
 }
 
 func (w *Client) Run(ctx context.Context, fileName string) error {
-
 	// initiate Hitting server with read request
 	// and sending file name
 	clnt, err := w.client.Read(ctx, &bytestream.ReadRequest{

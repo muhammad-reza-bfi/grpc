@@ -35,7 +35,6 @@ func NewWrite(ctx context.Context, firestoreClient firestore.FirestoreClient) (*
 }
 
 func (w *Write) Run() error {
-
 	go w.receive()
 
 	return w.send()
@@ -72,7 +71,6 @@ func (w *Write) send() error {
 	err := w.sendMessage(&firestore.WriteRequest{
 		Database: databaseUrl,
 	})
-
 	if err != nil {
 		return err
 	}

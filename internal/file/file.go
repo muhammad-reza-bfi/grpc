@@ -37,7 +37,6 @@ func Read(location string) (*File, error) {
 }
 
 func (res *File) Write(location string) error {
-
 	f, err := os.Create(fmt.Sprintf("%s/%s", location, res.Name))
 	if err != nil {
 		return err
@@ -54,7 +53,7 @@ func (res *File) Write(location string) error {
 
 func (res *File) CreateChunk() [][]byte {
 	var divided [][]byte
-	var numCPU = 3
+	numCPU := 3
 
 	chunkSize := (len(res.Data) + numCPU - 1) / numCPU
 
