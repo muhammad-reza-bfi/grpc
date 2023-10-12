@@ -54,7 +54,6 @@ func (res *File) Write(location string) error {
 func (res *File) CreateChunk() [][]byte {
 	var divided [][]byte
 	numCPU := 10
-
 	chunkSize := (len(res.Data) + numCPU - 1) / numCPU
 
 	for i := 0; i < len(res.Data); i += chunkSize {

@@ -56,6 +56,6 @@ func (w *Client) Run(fileName string, chunks ...[]byte) error {
 	}
 
 	// printing last message from server
-	fmt.Println(res)
+	fmt.Print("\n", res)
 	return nil
 }

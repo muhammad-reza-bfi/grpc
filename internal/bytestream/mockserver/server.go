@@ -81,6 +81,7 @@ func (w *MockServer) Write(writeMockServer bytestream.ByteStream_WriteServer) er
 	// prepare var
 	fileName := ""
 	bytes := make([]byte, 1000) // for saving the chunks
+	fmt.Printf("\n\ngot write stream\n")
 	for {
 
 		// receive payload from client
@@ -112,7 +113,7 @@ func (w *MockServer) Write(writeMockServer bytestream.ByteStream_WriteServer) er
 	if err != nil {
 		return err
 	}
-	fmt.Println("finished writing:", fileName)
+	fmt.Print("\nfinished writing:", fileName)
 
 	// send last message and send the committedSize, and the close the stream
 	return writeMockServer.SendAndClose(&bytestream.WriteResponse{

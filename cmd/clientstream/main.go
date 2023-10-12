@@ -16,7 +16,8 @@ func main() {
 	res, err := file.Read("large.txt")
 	errorc.CheckErr(err)
 
-	fmt.Println("uploading", res.Name)
+	fmt.Print("\nuploading:", res.Name)
+	fmt.Print("\n")
 
 	conn, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	errorc.CheckErr(err)
