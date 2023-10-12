@@ -12,6 +12,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	_ "google.golang.org/grpc/encoding/gzip" // Install the gzip compressor
 	"google.golang.org/grpc/status"
 )
 
@@ -93,7 +94,8 @@ func (w *MockServer) Write(writeMockServer bytestream.ByteStream_WriteServer) er
 			return err
 		}
 
-		fmt.Println("data from client:", res.Data)
+		// fmt.Println("data from client:", res.Data)
+		fmt.Print(".")
 
 		// appending chunks into complete data
 		bytes = append(bytes, res.Data...)

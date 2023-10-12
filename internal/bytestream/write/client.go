@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"google.golang.org/genproto/googleapis/bytestream"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/encoding/gzip"
 )
 
 type Client struct {
@@ -12,7 +14,7 @@ type Client struct {
 }
 
 func NewClient(ctx context.Context, byteStreamClient bytestream.ByteStreamClient) (*Client, error) {
-	clnt, err := byteStreamClient.Write(ctx)
+	clnt, err := byteStreamClient.Write(ctx, grpc.UseCompressor(gzip.Name))
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +39,8 @@ func (w *Client) Run(fileName string, chunks ...[]byte) error {
 			req.FinishWrite = true
 		}
 
-		fmt.Println("sending:", chunks[i])
+		// fmt.Println("sending:", chunks[i])
+		fmt.Print(".")
 
 		// sending chunk of data
 		err := w.client.Send(req)

@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"google.golang.org/genproto/googleapis/bytestream"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/encoding/gzip"
 
 	file "github.com/elangreza14/grpc/internal/file"
 )
@@ -28,7 +30,7 @@ func (w *Client) Run(ctx context.Context, fileName string) error {
 	// and sending file name
 	clnt, err := w.client.Read(ctx, &bytestream.ReadRequest{
 		ResourceName: fileName,
-	})
+	}, grpc.UseCompressor(gzip.Name))
 	if err != nil {
 		return err
 	}
