@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	res, err := file.Read("test.txt")
+	res, err := file.Read("large.txt")
 	errorc.CheckErr(err)
 
 	fmt.Println("uploading", res.Name)
