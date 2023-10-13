@@ -30,6 +30,7 @@ func (w *Client) Run(fileName string, chunks ...[]byte) error {
 		// setup the data with the chunk
 		req := &bytestream.WriteRequest{
 			ResourceName: fileName,
+			WriteOffset:  0,
 			FinishWrite:  false,
 			Data:         chunks[i],
 		}
@@ -39,8 +40,8 @@ func (w *Client) Run(fileName string, chunks ...[]byte) error {
 			req.FinishWrite = true
 		}
 
-		// fmt.Println("sending:", chunks[i])
-		fmt.Print(".")
+		fmt.Println("sending:", chunks[i])
+		// fmt.Print(".")
 
 		// sending chunk of data
 		err := w.client.Send(req)

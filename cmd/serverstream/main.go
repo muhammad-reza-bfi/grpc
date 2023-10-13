@@ -19,6 +19,6 @@ func main() {
 	readClient, err := bytestreamRead.NewClient(bsc)
 	errorc.CheckErr(err)
 
-	err = readClient.Run(context.Background(), "test.txt")
+	err = readClient.Run(context.Background(), "large.txt")
 	errorc.CheckErr(err)
 }

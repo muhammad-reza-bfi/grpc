@@ -65,6 +65,8 @@ func (w *MockServer) Read(
 	// create chunk of bytes from entire file
 	for _, data := range res.CreateChunk() {
 		fmt.Println("sending:", data)
+		// fmt.Print(".")
+
 		err := readMockServer.Send(&bytestream.ReadResponse{
 			Data: data,
 		})
@@ -95,8 +97,8 @@ func (w *MockServer) Write(writeMockServer bytestream.ByteStream_WriteServer) er
 			return err
 		}
 
-		// fmt.Println("data from client:", res.Data)
-		fmt.Print(".")
+		fmt.Println("data from client:", res.Data)
+		// fmt.Print(".")
 
 		// appending chunks into complete data
 		bytes = append(bytes, res.Data...)

@@ -51,6 +51,7 @@ func (w *Client) Run(ctx context.Context, fileName string) error {
 		}
 
 		fmt.Printf("data from server: %v \n", res.GetData())
+		// fmt.Printf(".")
 
 		// merging data
 		bs = append(bs, res.GetData()...)
